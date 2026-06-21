@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#211F1D" />
+<title>Plano · Ganho de Massa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --concrete:#211F1D; --concrete-card:#2B2825; --bone:#F4EFE6; --bone-dim:#C9C3B6;
+    --ember:#D5481F; --moss:#7C8C5C; --brass:#C9A66B; --iron:#5C584F;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{
+    background:var(--concrete); color:var(--bone); font-family:'Archivo',sans-serif;
+    -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none;
+  }
+  button, input{ font-family:inherit; }
+
+  /* App bar */
+  .appbar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; padding-top:max(14px, env(safe-area-inset-top));
+    background:rgba(33,31,29,0.92); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--iron);
+  }
+  .appbar-name{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--bone-dim); }
+  .appbar-kcal{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; background:var(--ember); color:var(--bone); padding:5px 11px; border-radius:999px; }
+
+  .container{ max-width:640px; margin:0 auto; padding:22px 18px 60px; }
+
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:0.7rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--moss); margin:0 0 4px; }
+
+  /* Hero */
+  .hero{ border-bottom:1px solid var(--iron); padding-bottom:20px; margin-bottom:22px; }
+  .hero-title{ font-family:'Bebas Neue',sans-serif; font-size:2.5rem; line-height:0.95; margin:0; }
+  .hero-sub{ font-size:0.85rem; color:var(--bone-dim); margin-top:6px; }
+
+  /* Macros */
+  .macros{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:26px; }
+  .macro{ background:var(--concrete-card); border-radius:10px; padding:14px 8px; text-align:center; border-top:3px solid var(--iron); }
+  .macro.ember{ border-top-color:var(--ember); }
+  .macro.moss{ border-top-color:var(--moss); }
+  .macro.brass{ border-top-color:var(--brass); }
+  .macro-value{ display:block; font-family:'IBM Plex Mono',monospace; font-size:1.02rem; font-weight:600; }
+  .macro-label{ display:block; font-size:0.66rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--bone-dim); margin-top:3px; }
+
+  /* Section title shared */
+  .section-title{ font-family:'Bebas Neue',sans-serif; font-size:1.6rem; margin:0; }
+
+  /* Meals */
+  .meal{ background:var(--concrete-card); border-radius:12px; padding:16px 16px 14px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.04); }
+  .meal-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .meal-number{ font-family:'IBM Plex Mono',monospace; font-size:0.75rem; color:var(--iron); }
+  .meal-title{ font-family:'Bebas Neue',sans-serif; font-size:1.25rem; margin:0; }
+  .meal-edit-toggle{ display:flex; align-items:center; gap:5px; margin-left:auto; background:none; border:1px solid var(--iron); color:var(--bone-dim); font-family:'IBM Plex Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.04em; padding:5px 9px; border-radius:7px; cursor:pointer; flex-shrink:0; }
+  .meal-edit-toggle.active{ border-color:var(--ember); color:var(--ember); }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .chip{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; letter-spacing:0.04em; text-transform:uppercase; padding:6px 13px; border-radius:999px; border:1px solid var(--iron); background:transparent; color:var(--bone-dim); cursor:pointer; }
+  .chip.active{ background:var(--moss); border-color:var(--moss); color:var(--bone); }
+
+  .item-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .item{ display:flex; align-items:center; gap:8px; }
+  .check{ width:22px; height:22px; flex-shrink:0; border-radius:5px; border:2px solid var(--iron); background:transparent; color:var(--bone); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; font-size:0.85rem; line-height:1; }
+  .check.on{ background:var(--ember); border-color:var(--ember); }
+  .item-label{ flex:1; font-size:0.92rem; }
+  .item-label.done{ color:var(--bone-dim); text-decoration:line-through; }
+  .note{ margin:10px 0 0; font-size:0.78rem; color:var(--brass); font-style:italic; }
+
+  .icon-btn{ background:none; border:none; color:var(--iron); padding:4px; display:flex; align-items:center; cursor:pointer; flex-shrink:0; }
+  .icon-btn:hover{ color:var(--bone); }
+  .icon-btn.danger:hover{ color:var(--ember); }
+
+  .add-item-input{ flex:1; background:transparent; border:1px dashed var(--iron); border-radius:6px; padding:7px 10px; color:var(--bone); font-size:0.88rem; min-width:0; }
+  .add-item-input::placeholder{ color:var(--iron); }
+  .add-confirm{ width:30px; height:30px; border-radius:6px; border:1px solid var(--iron); background:var(--ember); color:var(--bone); font-size:1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .edit-item-input{ flex:1; background:transparent; border:none; border-bottom:1px solid var(--ember); color:var(--bone); font-size:0.92rem; padding:1px 0; font-family:'Archivo',sans-serif; min-width:0; }
+
+  /* Peso corporal */
+  .weight-section, .workout-section{ margin:30px 0 26px; }
+  .weight-add-form{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .weight-add-form input, .workout-add-form input{ background:var(--concrete-card); border:1px solid var(--iron); border-radius:8px; padding:8px 10px; color:var(--bone); font-size:0.85rem; min-width:0; }
+  .weight-add-form input[type="date"]{ flex:1; min-width:130px; }
+  .weight-add-form input[type="number"]{ width:90px; }
+  .btn-primary{ background:var(--ember); border:none; color:var(--bone); border-radius:8px; padding:8px 14px; font-size:0.85rem; cursor:pointer; font-weight:600; }
+  .weight-summary{ display:flex; align-items:baseline; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+  .weight-current{ font-family:'Bebas Neue',sans-serif; font-size:2rem; }
+  .weight-delta{ font-family:'IBM Plex Mono',monospace; font-size:0.76rem; color:var(--brass); }
+  .weight-chart{ width:100%; height:90px; display:block; margin:4px 0 14px; }
+  .weight-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .weight-row{ display:flex; align-items:center; gap:10px; background:var(--concrete-card); border-radius:8px; padding:9px 12px; font-size:0.85rem; }
+  .weight-row .wdate{ color:var(--bone-dim); font-family:'IBM Plex Mono',monospace; font-size:0.75rem; }
+  .weight-row .wvalue{ font-weight:600; flex:1; }
+  .empty-note{ color:var(--bone-dim); font-size:0.82rem; }
+
+  /* Treino */
+  .workout-add-form{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:6px; }
+  .workout-add-form input.full{ grid-column:1 / -1; }
+  .workout-add-form .btn-primary{ grid-column:1 / -1; }
+  .workout-group{ margin-bottom:16px; }
+  .workout-date{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--moss); margin:0 0 8px; }
+  .workout-row{ display:flex; align-items:center; gap:8px; background:var(--concrete-card); border-radius:8px; padding:10px 12px; margin-bottom:8px; }
+  .workout-name{ flex:1; font-weight:600; font-size:0.9rem; }
+  .badge{ font-family:'IBM Plex Mono',monospace; font-size:0.7rem; background:rgba(255,255,255,0.06); color:var(--bone-dim); padding:3px 8px; border-radius:999px; flex-shrink:0; white-space:nowrap; }
+  .badge.weight{ background:var(--ember); color:var(--bone); }
+
+  /* Evolução / fotos */
+  .evolution-head{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; gap:10px; }
+  .text-btn{ background:none; border:none; color:var(--ember); font-family:'IBM Plex Mono',monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer; padding:4px; }
+
+  .filmstrip{ display:flex; gap:16px; overflow-x:auto; padding:10px 4px 16px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
+  .photo-card{ flex-shrink:0; width:148px; background:var(--bone); border-radius:4px; padding:8px 8px 10px; box-shadow:0 6px 14px rgba(0,0,0,0.35); position:relative; scroll-snap-align:start; }
+  .photo-img{ width:100%; height:148px; object-fit:cover; border-radius:2px; display:block; background:var(--concrete); }
+  .photo-meta{ display:flex; flex-direction:column; gap:4px; margin-top:6px; }
+  .photo-date, .photo-weight{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; border:none; background:transparent; color:var(--concrete); padding:1px 2px; width:100%; }
+  .photo-weight::placeholder{ color:var(--iron); }
+  .photo-delete{ position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; background:var(--concrete); border:1px solid var(--iron); color:var(--bone); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.7rem; }
+  .photo-add{ flex-shrink:0; width:148px; height:202px; border-radius:4px; border:2px dashed var(--iron); background:transparent; color:var(--bone-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-size:0.78rem; cursor:pointer; scroll-snap-align:start; }
+  .photo-add[disabled]{ opacity:0.6; }
+  .photo-add .plus{ font-size:1.6rem; line-height:1; }
+  .hint, .err, .banner{ font-size:0.8rem; }
+  .hint, .banner{ color:var(--bone-dim); }
+  .err{ color:var(--ember); margin-top:6px; min-height:1em; }
+  .banner{ background:var(--concrete-card); border-radius:8px; padding:10px 12px; margin-bottom:14px; border-left:3px solid var(--brass); }
+
+  /* Observations */
+  .observations{ border-top:1px solid var(--iron); padding-top:18px; }
+  .obs-list{ list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .obs-list li{ display:flex; align-items:flex-start; gap:10px; font-size:0.88rem; color:var(--bone-dim); }
+  .obs-dot{ width:6px; height:6px; border-radius:50%; background:var(--moss); margin-top:7px; flex-shrink:0; }
+
+  .spin{ display:inline-block; width:14px; height:14px; border:2px solid var(--iron); border-top-color:var(--bone); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){ .spin{ animation:none; } }
+
+  #photoInput{ display:none; }
+</style>
+</head>
+<body>
+  <div class="appbar">
+    <span class="appbar-name">Plano · Ganho de massa</span>
+    <span class="appbar-kcal">3100 kcal</span>
+  </div>
+
+  <div class="container">
+    <section class="hero">
+      <p class="eyebrow">Plano alimentar diário</p>
+      <h1 class="hero-title">Ganho de massa</h1>
+      <p class="hero-sub" id="todayLabel"></p>
+    </section>
+
+    <section class="macros">
+      <div class="macro ember"><span class="macro-value">190–200 g</span><span class="macro-label">Proteínas</span></div>
+      <div class="macro moss"><span class="macro-value">240–260 g</span><span class="macro-label">Carboidratos</span></div>
+      <div class="macro brass"><span class="macro-value">45–55 g</span><span class="macro-label">Gorduras</span></div>
+    </section>
+
+    <section id="mealsRoot" aria-label="Refeições do dia"></section>
+
+    <section class="weight-section" aria-label="Peso corporal">
+      <p class="eyebrow">Acompanhamento</p>
+      <h2 class="section-title">Peso corporal</h2>
+      <div class="weight-add-form">
+        <input type="date" id="weightDateInput" />
+        <input type="number" id="weightValueInput" step="0.1" inputmode="decimal" placeholder="kg" />
+        <button type="button" class="btn-primary" data-action="add-weight">Registrar</button>
+      </div>
+      <div id="weightResults"></div>
+    </section>
+
+    <section class="evolution" aria-label="Evolução em fotos">
+      <div class="evolution-head">
+        <div>
+          <p class="eyebrow">Acompanhamento</p>
+          <h2 class="section-title">Fotos</h2>
+        </div>
+        <button type="button" class="text-btn" id="clearBtn" style="display:none;"></button>
+      </div>
+      <div id="storageBanner"></div>
+      <div class="filmstrip" id="filmstrip"></div>
+      <input type="file" id="photoInput" accept="image/*" />
+      <div id="photoFeedback"></div>
+    </section>
+
+    <section class="workout-section" aria-label="Treino">
+      <p class="eyebrow">Treino</p>
+      <h2 class="section-title">Exercícios</h2>
+      <div class="workout-add-form">
+        <input type="text" id="exerciseNameInput" class="full" placeholder="Exercício (ex.: Supino reto)" />
+        <input type="number" id="exerciseWeightInput" step="0.5" inputmode="decimal" placeholder="Carga (kg)" />
+        <input type="number" id="exerciseSetsInput" inputmode="numeric" placeholder="Séries" />
+        <input type="number" id="exerciseRepsInput" inputmode="numeric" placeholder="Repetições" />
+        <button type="button" class="btn-primary" data-action="add-workout">Adicionar</button>
+      </div>
+      <p class="err" id="workoutFormMsg"></p>
+      <div id="workoutResults"></div>
+    </section>
+
+    <section class="observations">
+      <p class="eyebrow">Observações</p>
+      <ul class="obs-list">
+        <li><span class="obs-dot"></span>Ingerir entre 3 e 4 litros de água por dia.</li>
+        <li><span class="obs-dot"></span>Priorizar sono de qualidade e progressão nos treinos.</li>
+        <li><span class="obs-dot"></span>Ajustar as calorias conforme a evolução do peso corporal.</li>
+      </ul>
+    </section>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- Ícones ---------------- */
+  const ICONS = {
+    pencil:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    trash:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>'
+  };
+
+  /* ---------------- Dados do plano ---------------- */
+  const LUNCH_BASE_OPTIONS = [
+    { value:"arroz", label:"200 g de arroz", short:"Arroz" },
+    { value:"macarrao", label:"200 g de macarrão", short:"Macarrão" },
+  ];
+  const DINNER_BASE_OPTIONS = [
+    { value:"arroz", label:"200 g de arroz", short:"Arroz" },
+    { value:"batata", label:"200 g de batata inglesa", short:"Batata" },
+    { value:"macarrao", label:"200 g de macarrão", short:"Macarrão" },
+  ];
+  const MEALS = [
+    { id:"m1", number:"01", title:"Café da manhã",
+      items:[{id:"m1-1",label:"3 ovos"},{id:"m1-2",label:"1 pão francês"},{id:"m1-3",label:"1 banana"}] },
+    { id:"m2", number:"02", title:"2ª Refeição (Almoço)", baseKey:"lunchBase", baseOptions:LUNCH_BASE_OPTIONS,
+      items:[{id:"m2-2",label:"130 g de frango ou carne moída"},{id:"m2-3",label:"1 fatia de abacaxi"}] },
+    { id:"m3", number:"03", title:"Pré-treino",
+      items:[{id:"m3-1",label:"1 pão com doce de leite ou mel"},{id:"m3-2",label:"2 bananas"}] },
+    { id:"m4", number:"04", title:"Pós-treino",
+      items:[{id:"m4-1",label:"2 scoops de whey protein"},{id:"m4-2",label:"Iogurte"}] },
+    { id:"m5", number:"05", title:"Jantar", baseKey:"dinnerBase", baseOptions:DINNER_BASE_OPTIONS,
+      items:[{id:"m5-2",label:"130 g de peito de frango ou carne"},{id:"m5-3",label:"1 fatia de abacaxi"},{id:"m5-4",label:"Salada à vontade"}],
+      note:"Consumir 100 g de fígado bovino uma vez por semana nesta refeição." },
+    { id:"m6", number:"06", title:"Última refeição",
+      items:[{id:"m6-1",label:"2 scoops de whey protein"},{id:"m6-2",label:"Iogurte"}] },
+  ];
+
+  /* ---------------- Estado ---------------- */
+  let checks = {};
+  let lunchBase = "arroz";
+  let dinnerBase = "arroz";
+  let customItems = {};
+  MEALS.forEach(function(meal){
+    customItems[meal.id] = meal.items.map(function(it){ return { id:it.id, label:it.label }; });
+  });
+  let editingMeals = {};
+  let editingId = null;
+
+  let photos = [];
+  let photoBusy = false;
+  let photoFeedback = "";
+  let confirmClear = false;
+  let hasStorage = typeof window.storage !== "undefined" && window.storage && typeof window.storage.set === "function";
+
+  let weightLog = [];
+  let workouts = [];
+
+  /* ---------------- Utilidades ---------------- */
+  function todayKey(){ return new Date().toISOString().slice(0,10); }
+  function checksKey(){ return "meal-checks:" + todayKey(); }
+  function formatDateBR(iso){ const parts = iso.split("-"); return parts[2]+"/"+parts[1]+"/"+parts[0]; }
+  function newId(){ return (crypto.randomUUID ? crypto.randomUUID() : ("id-"+Date.now()+"-"+Math.random().toString(16).slice(2))); }
+  function escapeHtml(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function compressImage(file, maxWidth, quality){
+    maxWidth = maxWidth || 720; quality = quality || 0.6;
+    return new Promise(function(resolve, reject){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const img = new Image();
+        img.onload = function(){
+          const scale = Math.min(1, maxWidth / img.width);
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = function(){ reject(new Error("Não foi possível ler a imagem.")); };
+        img.src = e.target.result;
+      };
+      reader.onerror = function(){ reject(new Error("Não foi possível ler o arquivo.")); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function storageGet(key){
+    if(!hasStorage) return null;
+    try { return await window.storage.get(key, false); } catch(e){ return null; }
+  }
+  async function storageSet(key, value){
+    if(!hasStorage) return false;
+    try { const r = await window.storage.set(key, value, false); return !!r; } catch(e){ return false; }
+  }
+
+  /* ---------------- Refeições (editáveis) ---------------- */
+  function baseItemHTML(id, label, checkedSet){
+    const isOn = !!checkedSet[id];
+    return '<li class="item">' +
+      '<button type="button" class="check ' + (isOn?"on":"") + '" data-action="toggle" data-id="' + id + '" aria-pressed="' + isOn + '">' + (isOn?"✓":"") + '</button>' +
+      '<span class="item-label ' + (isOn?"done":"") + '">' + escapeHtml(label) + '</span>' +
+    '</li>';
+  }
+
+  function mealItemRow(mealId, item, checkedSet, editing){
+    const isOn = !!checkedSet[item.id];
+    const isEditing = editing && editingId === item.id;
+    let labelHTML;
+    if(isEditing){
+      labelHTML = '<input type="text" class="edit-item-input" id="edit-input-' + item.id + '" data-meal="' + mealId + '" data-item="' + item.id + '" value="' + escapeHtml(item.label) + '" />';
+    } else {
+      labelHTML = '<span class="item-label ' + (isOn?"done":"") + '">' + escapeHtml(item.label) + '</span>';
+    }
+    let actions = "";
+    if(editing && !isEditing){
+      actions =
+        '<button type="button" class="icon-btn" data-action="edit-item" data-meal="' + mealId + '" data-item="' + item.id + '" aria-label="Editar alimento">' + ICONS.pencil + '</button>' +
+        '<button type="button" class="icon-btn danger" data-action="delete-item" data-meal="' + mealId + '" data-item="' + item.id + '" aria-label="Excluir alimento">' + ICONS.trash + '</button>';
+    }
+    return '<li class="item">' +
+      '<button type="button" class="check ' + (isOn?"on":"") + '" data-action="toggle" data-id="' + item.id + '" aria-pressed="' + isOn + '">' + (isOn?"✓":"") + '</button>' +
+      labelHTML + actions +
+    '</li>';
+  }
+
+  function renderMeals(){
+    const root = document.getElementById("mealsRoot");
+    let html = "";
+    MEALS.forEach(function(meal){
+      const editing = !!editingMeals[meal.id];
+      const baseValue = meal.baseKey === "lunchBase" ? lunchBase : (meal.baseKey === "dinnerBase" ? dinnerBase : null);
+      let baseRow = "", baseItem = "";
+      if(meal.baseOptions){
+        baseRow = '<div class="chip-row">' + meal.baseOptions.map(function(opt){
+          return '<button type="button" class="chip ' + (baseValue===opt.value?"active":"") + '" data-action="setbase" data-mealkey="' + meal.baseKey + '" data-value="' + opt.value + '">' + opt.short + '</button>';
+        }).join("") + '</div>';
+        const opt = meal.baseOptions.find(function(o){ return o.value === baseValue; });
+        const baseId = meal.id + "-base-" + baseValue;
+        baseItem = baseItemHTML(baseId, opt.label, checks);
+      }
+      const items = customItems[meal.id] || [];
+      const itemsHTML = items.map(function(it){ return mealItemRow(meal.id, it, checks, editing); }).join("");
+      const addRow = editing
+        ? '<li class="item"><input type="text" class="add-item-input" id="add-input-' + meal.id + '" data-meal="' + meal.id + '" placeholder="Adicionar alimento" /><button type="button" class="icon-btn add-confirm" data-action="add-item" data-meal="' + meal.id + '" aria-label="Adicionar alimento">+</button></li>'
+        : "";
+      html += '<article class="meal">' +
+        '<div class="meal-head"><span class="meal-number">' + meal.number + '</span><h2 class="meal-title">' + meal.title + '</h2>' +
+          '<button type="button" class="meal-edit-toggle ' + (editing?"active":"") + '" data-action="toggle-edit-meal" data-meal="' + meal.id + '">' + ICONS.pencil + '<span>' + (editing?"Concluir":"Editar") + '</span></button>' +
+        '</div>' +
+        baseRow +
+        '<ul class="item-list">' + baseItem + itemsHTML + addRow + '</ul>' +
+        (meal.note ? '<p class="note">' + meal.note + '</p>' : "") +
+      '</article>';
+    });
+    root.innerHTML = html;
+    if(editingId){
+      const input = document.getElementById("edit-input-" + editingId);
+      if(input){ input.focus(); input.select(); }
+    }
+  }
+
+  function persistCustomItems(){ storageSet("custom-meal-items", JSON.stringify(customItems)); }
+
+  async function toggleCheck(id){
+    checks[id] = !checks[id];
+    renderMeals();
+    await storageSet(checksKey(), JSON.stringify(checks));
+  }
+  async function setBase(mealKey, value){
+    if(mealKey === "lunchBase") lunchBase = value; else dinnerBase = value;
+    renderMeals();
+    await storageSet(mealKey === "lunchBase" ? "lunch-base" : "dinner-base", value);
+  }
+  function toggleEditMeal(mealId){
+    editingMeals[mealId] = !editingMeals[mealId];
+    if(!editingMeals[mealId]) editingId = null;
+    renderMeals();
+  }
+  function startEditItem(mealId, itemId){
+    editingId = itemId;
+    renderMeals();
+  }
+  function commitEditItem(mealId, itemId, value){
+    const trimmed = value.trim();
+    const arr = customItems[mealId] || [];
+    const idx = arr.findIndex(function(it){ return it.id === itemId; });
+    if(idx > -1 && trimmed){ arr[idx] = Object.assign({}, arr[idx], { label: trimmed }); }
+    editingId = null;
+    persistCustomItems();
+    renderMeals();
+  }
+  function addItem(mealId){
+    const input = document.getElementById("add-input-" + mealId);
+    if(!input) return;
+    const text = input.value.trim();
+    if(!text) return;
+    if(!customItems[mealId]) customItems[mealId] = [];
+    customItems[mealId].push({ id:newId(), label:text });
+    persistCustomItems();
+    renderMeals();
+  }
+  function deleteItem(mealId, itemId){
+    customItems[mealId] = (customItems[mealId] || []).filter(function(it){ return it.id !== itemId; });
+    delete checks[itemId];
+    persistCustomItems();
+    storageSet(checksKey(), JSON.stringify(checks));
+    renderMeals();
+  }
+
+  /* ---------------- Peso corporal ---------------- */
+  function sortedWeightAsc(){
+    return weightLog.slice().sort(function(a,b){ return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
+  }
+  function buildSparkline(entriesAsc){
+    const values = entriesAsc.map(function(e){ return parseFloat(e.weight); }).filter(function(v){ return !isNaN(v); });
+    if(values.length < 2) return "";
+    const min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+    const range = (max - min) || 1;
+    const pts = values.map(function(v,i){
+      const x = (i/(values.length-1))*100;
+      const y = 36 - ((v-min)/range)*30;
+      return x.toFixed(1) + "," + y.toFixed(1);
+    });
+    const lastPt = pts[pts.length-1].split(",");
+    return '<svg viewBox="0 0 100 40" preserveAspectRatio="none" class="weight-chart">' +
+      '<polyline points="' + pts.join(" ") + '" fill="none" stroke="#7C8C5C" stroke-width="1.6" vector-effect="non-scaling-stroke" />' +
+      '<circle cx="' + lastPt[0] + '" cy="' + lastPt[1] + '" r="2.4" fill="#D5481F" />' +
+    '</svg>';
+  }
+  function renderWeight(){
+    const root = document.getElementById("weightResults");
+    const asc = sortedWeightAsc();
+    let html = "";
+    if(asc.length === 0){
+      html = '<p class="empty-note">Registre seu peso semanalmente para acompanhar a evolução.</p>';
+    } else {
+      const last = asc[asc.length-1];
+      let deltaHTML = "";
+      if(asc.length >= 2){
+        const prev = asc[asc.length-2];
+        const diff = parseFloat(last.weight) - parseFloat(prev.weight);
+        const sign = diff > 0 ? "+" : "";
+        const arrow = diff > 0 ? "▲" : (diff < 0 ? "▼" : "—");
+        deltaHTML = '<span class="weight-delta">' + arrow + " " + sign + diff.toFixed(1) + " kg desde o último registro</span>";
+      }
+      html += '<div class="weight-summary"><span class="weight-current">' + parseFloat(last.weight) + ' kg</span>' + deltaHTML + '</div>';
+      html += buildSparkline(asc);
+      html += '<ul class="weight-list">' + asc.slice().reverse().map(function(e){
+        return '<li class="weight-row"><span class="wdate">' + formatDateBR(e.date) + '</span><span class="wvalue">' + parseFloat(e.weight) + ' kg</span>' +
+          '<button type="button" class="icon-btn danger" data-action="delete-weight" data-id="' + e.id + '" aria-label="Remover registro">' + ICONS.trash + '</button></li>';
+      }).join("") + '</ul>';
+    }
+    root.innerHTML = html;
+  }
+  function addWeight(){
+    const dateInput = document.getElementById("weightDateInput");
+    const valueInput = document.getElementById("weightValueInput");
+    const date = dateInput.value || todayKey();
+    const w = parseFloat(valueInput.value);
+    if(isNaN(w) || w <= 0) return;
+    weightLog.push({ id:newId(), date:date, weight:w });
+    storageSet("weight-log", JSON.stringify(weightLog));
+    valueInput.value = "";
+    renderWeight();
+  }
+  function deleteWeight(id){
+    weightLog = weightLog.filter(function(e){ return e.id !== id; });
+    storageSet("weight-log", JSON.stringify(weightLog));
+    renderWeight();
+  }
+
+  /* ---------------- Treino ---------------- */
+  function groupWorkoutsByDateDesc(){
+    const map = {};
+    workouts.forEach(function(w){ (map[w.date] = map[w.date] || []).push(w); });
+    return Object.keys(map).sort(function(a,b){ return a < b ? 1 : (a > b ? -1 : 0); }).map(function(d){ return { date:d, entries:map[d] }; });
+  }
+  function renderWorkouts(){
+    const root = document.getElementById("workoutResults");
+    if(workouts.length === 0){
+      root.innerHTML = '<p class="empty-note">Nenhum treino registrado ainda.</p>';
+      return;
+    }
+    const groups = groupWorkoutsByDateDesc();
+    let html = "";
+    groups.forEach(function(g){
+      const label = g.date === todayKey() ? "Hoje · " + formatDateBR(g.date) : formatDateBR(g.date);
+      html += '<div class="workout-group"><p class="workout-date">' + label + '</p>';
+      g.entries.forEach(function(w){
+        html += '<div class="workout-row"><span class="workout-name">' + escapeHtml(w.name) + '</span>' +
+          '<span class="badge weight">' + w.weight + ' kg</span>' +
+          (w.sets ? '<span class="badge">' + w.sets + 'x' + (w.reps || "?") + '</span>' : "") +
+          '<button type="button" class="icon-btn danger" data-action="delete-workout" data-id="' + w.id + '" aria-label="Remover exercício">' + ICONS.trash + '</button>' +
+        '</div>';
+      });
+      html += '</div>';
+    });
+    root.innerHTML = html;
+  }
+  function addWorkout(){
+    const nameInput = document.getElementById("exerciseNameInput");
+    const weightInput = document.getElementById("exerciseWeightInput");
+    const setsInput = document.getElementById("exerciseSetsInput");
+    const repsInput = document.getElementById("exerciseRepsInput");
+    const msg = document.getElementById("workoutFormMsg");
+    const name = nameInput.value.trim();
+    const w = parseFloat(weightInput.value);
+    if(!name || isNaN(w)){
+      msg.textContent = "Informe o exercício e a carga.";
+      return;
+    }
+    msg.textContent = "";
+    const sets = setsInput.value ? parseInt(setsInput.value, 10) : null;
+    const reps = repsInput.value ? parseInt(repsInput.value, 10) : null;
+    workouts.push({ id:newId(), date:todayKey(), name:name, weight:w, sets:sets, reps:reps });
+    storageSet("workouts", JSON.stringify(workouts));
+    nameInput.value = ""; weightInput.value = ""; setsInput.value = ""; repsInput.value = "";
+    renderWorkouts();
+  }
+  function deleteWorkout(id){
+    workouts = workouts.filter(function(w){ return w.id !== id; });
+    storageSet("workouts", JSON.stringify(workouts));
+    renderWorkouts();
+  }
+
+  /* ---------------- Evolução / fotos ---------------- */
+  function renderStorageBanner(){
+    const el = document.getElementById("storageBanner");
+    el.innerHTML = hasStorage ? "" : '<p class="banner">Armazenamento permanente indisponível aqui — os dados ficam visíveis só durante esta sessão.</p>';
+  }
+  function renderClearButton(){
+    const btn = document.getElementById("clearBtn");
+    if(photos.length === 0){ btn.style.display = "none"; return; }
+    btn.style.display = "inline-block";
+    btn.textContent = confirmClear ? "Toque para confirmar" : "Limpar fotos";
+  }
+  function renderPhotos(){
+    const strip = document.getElementById("filmstrip");
+    let html = "";
+    photos.forEach(function(p, i){
+      const tilt = ((i % 3) - 1) * 2.5;
+      html += '<div class="photo-card" style="transform:rotate(' + tilt + 'deg)" data-photo-id="' + p.id + '">' +
+        '<button type="button" class="photo-delete" data-action="delete-photo" data-id="' + p.id + '" aria-label="Remover foto">×</button>' +
+        '<img class="photo-img" src="' + p.img + '" alt="Progresso em ' + formatDateBR(p.date) + '" />' +
+        '<div class="photo-meta">' +
+          '<input type="date" class="photo-date" data-field="date" data-id="' + p.id + '" value="' + p.date + '" />' +
+          '<input type="number" inputmode="decimal" placeholder="peso kg" class="photo-weight" data-field="weight" data-id="' + p.id + '" value="' + p.weight + '" />' +
+        '</div>' +
+      '</div>';
+    });
+    html += '<button type="button" class="photo-add" id="addPhotoBtn" ' + (photoBusy?"disabled":"") + '>' +
+      (photoBusy ? '<span class="spin"></span>' : '<span class="plus">+</span>') +
+      '<span>' + (photoBusy ? "Salvando…" : "Adicionar foto") + '</span>' +
+    '</button>';
+    strip.innerHTML = html;
+
+    const feedback = document.getElementById("photoFeedback");
+    if(photoFeedback){
+      feedback.innerHTML = '<p class="err">' + photoFeedback + '</p>';
+    } else if(photos.length === 0){
+      feedback.innerHTML = '<p class="hint">Adicione uma foto por semana para acompanhar sua evolução ao longo do tempo.</p>';
+    } else {
+      feedback.innerHTML = "";
+    }
+    renderClearButton();
+
+    document.getElementById("addPhotoBtn").addEventListener("click", function(){
+      document.getElementById("photoInput").click();
+    });
+  }
+  function persistPhotos(){ return storageSet("progress-photos", JSON.stringify(photos)); }
+  async function addPhoto(file){
+    if(!file) return;
+    photoBusy = true; photoFeedback = ""; renderPhotos();
+    try {
+      const dataUrl = await compressImage(file);
+      const entry = { id:newId(), date:todayKey(), weight:"", img:dataUrl };
+      photos = photos.concat([entry]);
+      photoBusy = false;
+      renderPhotos();
+      const saved = await persistPhotos();
+      if(!saved && hasStorage){
+        photoFeedback = "Foto adicionada, mas não foi possível salvar permanentemente.";
+        renderPhotos();
+      }
+    } catch(e){
+      photoBusy = false;
+      photoFeedback = "Não foi possível processar essa imagem. Tente outra foto.";
+      renderPhotos();
+    }
+  }
+  function updatePhotoField(id, field, value){
+    photos = photos.map(function(p){ return p.id === id ? Object.assign({}, p, { [field]: value }) : p; });
+    persistPhotos();
+  }
+  function deletePhoto(id){
+    photos = photos.filter(function(p){ return p.id !== id; });
+    renderPhotos();
+    persistPhotos();
+  }
+  function handleClearAll(){
+    if(!confirmClear){ confirmClear = true; renderClearButton(); return; }
+    photos = [];
+    confirmClear = false;
+    renderPhotos();
+    persistPhotos();
+  }
+
+  /* ---------------- Eventos (delegação) ---------------- */
+  document.addEventListener("click", function(e){
+    const t = e.target.closest("[data-action]");
+    if(!t) return;
+    const action = t.dataset.action;
+    if(action === "toggle") toggleCheck(t.dataset.id);
+    else if(action === "setbase") setBase(t.dataset.mealkey, t.dataset.value);
+    else if(action === "delete-photo") deletePhoto(t.dataset.id);
+    else if(action === "toggle-edit-meal") toggleEditMeal(t.dataset.meal);
+    else if(action === "edit-item") startEditItem(t.dataset.meal, t.dataset.item);
+    else if(action === "delete-item") deleteItem(t.dataset.meal, t.dataset.item);
+    else if(action === "add-item") addItem(t.dataset.meal);
+    else if(action === "add-weight") addWeight();
+    else if(action === "delete-weight") deleteWeight(t.dataset.id);
+    else if(action === "add-workout") addWorkout();
+    else if(action === "delete-workout") deleteWorkout(t.dataset.id);
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.target.classList && e.target.classList.contains("add-item-input") && e.key === "Enter"){
+      e.preventDefault();
+      addItem(e.target.dataset.meal);
+    } else if(e.target.classList && e.target.classList.contains("edit-item-input")){
+      if(e.key === "Enter"){
+        e.preventDefault();
+        e.target.blur();
+      } else if(e.key === "Escape"){
+        e.preventDefault();
+        const mealId = e.target.dataset.meal, itemId = e.target.dataset.item;
+        const original = (customItems[mealId] || []).find(function(it){ return it.id === itemId; });
+        e.target.value = original ? original.label : "";
+        e.target.blur();
+      }
+    }
+  });
+
+  document.addEventListener("focusout", function(e){
+    if(e.target.classList && e.target.classList.contains("edit-item-input")){
+      commitEditItem(e.target.dataset.meal, e.target.dataset.item, e.target.value);
+    }
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", handleClearAll);
+  document.getElementById("photoInput").addEventListener("change", function(e){
+    const file = e.target.files && e.target.files[0];
+    addPhoto(file);
+    e.target.value = "";
+  });
+  document.getElementById("filmstrip").addEventListener("change", function(e){
+    const field = e.target.dataset.field;
+    if(!field) return;
+    updatePhotoField(e.target.dataset.id, field, e.target.value);
+  });
+
+  /* ---------------- Inicialização ---------------- */
+  async function init(){
+    document.getElementById("todayLabel").textContent = "Hoje, " + formatDateBR(todayKey());
+    document.getElementById("weightDateInput").value = todayKey();
+
+    renderStorageBanner();
+    renderMeals();
+    renderPhotos();
+    renderWeight();
+    renderWorkouts();
+
+    const c = await storageGet(checksKey());
+    if(c){ try{ checks = JSON.parse(c.value); } catch(e){} }
+    const lb = await storageGet("lunch-base");
+    if(lb){ lunchBase = lb.value; }
+    const db = await storageGet("dinner-base");
+    if(db){ dinnerBase = db.value; }
+    const ci = await storageGet("custom-meal-items");
+    if(ci){
+      try {
+        const parsed = JSON.parse(ci.value);
+        MEALS.forEach(function(meal){ if(parsed[meal.id]) customItems[meal.id] = parsed[meal.id]; });
+      } catch(e){}
+    }
+    const p = await storageGet("progress-photos");
+    if(p){ try{ photos = JSON.parse(p.value); } catch(e){} }
+    const wl = await storageGet("weight-log");
+    if(wl){ try{ weightLog = JSON.parse(wl.value); } catch(e){} }
+    const wk = await storageGet("workouts");
+    if(wk){ try{ workouts = JSON.parse(wk.value); } catch(e){} }
+
+    renderMeals();
+    renderPhotos();
+    renderWeight();
+    renderWorkouts();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
